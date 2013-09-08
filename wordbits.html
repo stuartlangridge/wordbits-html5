@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WordBits</title>
+    <script type='application/javascript' src='fastclick.js'></script>
+
+<link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+
+<style>
+body {
+    background: "#a55e55";
+    font-family: Ubuntu, sans-serif;
+}
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    text-align: center;
+}
+#loading div {
+    display: none;
+    position: absolute;
+    width: 300px;
+    height: 150px;
+    top: 50%;
+    left: 50%;
+    margin-left: -150px;
+    margin-top: -75px;
+    background: white;
+    text-align: center;
+    color: #f7f6f5;
+    background-color: #dd4814;
+    border-radius: 9px;
+    padding: 25px;
+}
+#wordbits {
+    margin-left: 4vw;
+    clear: both;
+}
+#wordbits li {
+    display: inline-block;
+    width: 30vw;
+}
+#wordbits li button {
+    width: 30vw;
+}
+
+#toguess {
+    overflow: auto;
+    font-size: 12px;
+}
+#toguess dt {
+    float: right;
+    clear: right;
+    width: 32%;
+    color: #999;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    text-align: right;
+    padding-right: 8%;
+}
+#toguess dt.got {
+    color: black;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+#toguess dd {
+    float: left;
+    clear: left;
+    width: 56%;
+    padding-left: 4%;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+#guessarea {
+    margin-left: 4%;
+    padding-left: 0;
+    border: 1px solid transparent;
+    display: inline-block;
+    float: left;
+}
+#guessarea li {
+    display: inline;
+}
+#guess { 
+    clear: both; 
+    padding-right: 6%;
+}
+#toguess, #guess, #wordbits {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+#guessarea button {
+    display: inline;
+    padding: 2px 4px;
+    border-width: 0;
+    min-height: 20px;
+}
+#guess > button {
+    float: right;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+button {
+    min-height: 36px;
+}
+li.holding, li.holdforever { visibility: hidden; }
+footer {
+    /* no toolbars for us, Dr Jones */
+    display: none !important;
+}
+#about p {
+    margin: 15px;
+}
+</style>
+</head>
+<body>
+    <div data-role="page">
+        <header data-role="header">
+            <nav data-role="navbar" class="tabs">
+                <div class="tabs-inner">
+                    <ul data-role="tabs">
+                        <li class="active" data-role="tab">
+                            <a href="#mainpage">Wordbits</a>
+                        </li>
+                        <li class="inactive" data-role="tab">
+                            <a href="#about">About</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+
+        <div class="content">
+            <div data-role="pagestack">
+                <div data-role="page" id="mainpage">
+                    <dl id="toguess">
+                        <dt> ------ </dt>
+                        <dd>A definition of a word (6)</dd>
+                    </dl>
+                    <div id="guess">
+                        <ul id="guessarea">
+                        </ul>
+                        <button data-role="button" id="guessbutton" class="success">Guess</button> 
+                        <button data-role="button" id="hintbutton">Hint</button> 
+                    </div>
+                    <ul id="wordbits">
+                        <li><button data-role="button">Standard</button></li>
+                    </ul>
+                </div>
+                <div data-role="page" id="about">
+                    <p>game by <a 
+                        href='http://twitter.com/sil'>@sil</a></p>
+                    <p>sounds: freesound from <a 
+                        href='http://www.freesound.org/people/kantouth/sounds/106727/'>kantouth</a>
+                        / <a href='http://www.freesound.org/people/jobro/sounds/60443/'>jobro</a> 
+                        / <a href='http://www.freesound.org/people/grunz/sounds/109662/'>grunz</a></p>
+                        <p>This game contains words and definitions
+                            extracted from Princeton University's WordNet, Princeton University. 2010 (<a href='http://wordnet.princeton.edu/wordnet/license/'>license</a>)</p>
+                        <p>Many thanks to many who helped out making
+                            an HTML5 app; daker, mhall119, karni near the
+                            top of the list.</p>
+                        <p>This application includes the Ubuntu HTML5
+                            theme, which is under the LGPL. The wordlist
+                            is, as noted above, used by the terms of
+                            Princeton's WordNet licence. The sounds are
+                            used under the terms of the Creative Commons
+                            Attribution licence. The remainder of the
+                            application itself is released to the public
+                            domain.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="loading">
+        loading resources...
+        <div id="toolong">Sorry for the delay; it seems to be taking
+        a long time to load. Thank you for your patience.</div>
+        <div id="waytoolong">Everything just took too long, so we're
+            giving up, I'm afraid.
+        </div>
+    </div>
+    <audio src="106727__kantouth__cartoon-bing-low.wav" 
+    id="audiobad" preload="auto"></audio>
+    <audio src="109662__grunz__success.wav" 
+    id="audiogood" preload="auto"></audio>
+    <audio src="60443__jobro__tada1.wav" 
+    id="audiosuper" preload="auto"></audio>
+<script>
+/* detect whether the Ubuntu HTML5 theme has loaded by checking 
+   whether the body background colour is different to what we set. */
+var OUR_BG_STYLE = window.getComputedStyle(document.body, null).getPropertyValue("background-color");
+</script>
+<link href="ubuntu-html5-theme/css/default.css" rel="stylesheet" type="text/css">
+<script>
+var GLOBALS = (function() {
+    var WORDLIST_LOADED = false, 
+        WORDLIST, gamewords;
+    var checkEverythingLoaded = function() {
+        if (WORDLIST_LOADED) {
+            document.getElementById("loading").style.display = "none";
+            beginGame();
+        }
+    }
+
+    var wordload = function(words) {
+        WORDLIST_LOADED = true;
+        WORDLIST = words;
+        checkEverythingLoaded();
+    }
+
+    var shuffle = function(list) {
+      var i, j, t;
+      for (i = 1; i < list.length; i++) {
+        j = Math.floor(Math.random()*(1+i));  // choose j in [0..i]
+        if (j != i) {
+          t = list[i];                        // swap list[i] and list[j]
+          list[i] = list[j];
+          list[j] = t;
+        }
+      }
+    }
+
+    var getsplits = function(word) {
+        // Given a word, divides it into three roughly equal length part
+        if (word.length<3) throw new Error("Word too short");
+        // First, start walking up from [1,1,1] until we have numbers indicating
+        // part lengths for this word... so an eight letter word will give [3,3,2]
+        var s = [1,1,1], inc_idx = 0;
+        function sum(list) { var total=0; list.forEach(function(i) { total += i}); return total; }
+        while (sum(s) < word.length) {
+            s[inc_idx] += 1;
+            inc_idx += 1;
+            if (inc_idx >= s.length) inc_idx = 0;
+        }
+        // shuffle the part length list so it might be [2,3,2]
+        shuffle(s);
+        // break the word into bits that size and return them
+        var parts = [], w = word;
+        while (s.length > 0) {
+            var first = s.shift();
+            parts.push(w.substr(0, first));
+            w = w.substr(first);
+        }
+        return parts;
+    }
+
+    var populateGame = function() {
+        var idxs = [], wordparts = [];
+        gamewords = [];
+        var gamewordparts = [];
+        while (idxs.length < 6) {
+            var idx = Math.floor(Math.random() * WORDLIST.length);
+            var found = false;
+            for (var j=0; j<idxs.length; j++) {
+                if (idx === idxs[j]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) continue;
+            idxs.push(idx);
+            var le = WORDLIST[idx];
+            var splits = getsplits(le[0]);
+            wordparts = wordparts.concat(splits);
+
+            var nw = {word: le[0], definition: le[1], guessed: false, hintcount: 0};
+            gamewords.push(nw);
+        }
+        shuffle(wordparts);
+        for (var i=0; i<wordparts.length; i++) { 
+            gamewordparts.push({part: wordparts[i], selected: false, originalIndex: i}); 
+        }
+        var dl = document.getElementById("toguess");
+        dl.innerHTML = "";
+        gamewords.forEach(function(w) {
+            var dt = document.createElement("dt");
+            var dd = document.createElement("dd");
+            dt.appendChild(document.createTextNode(w.word.length + " letters"));
+            dd.appendChild(document.createTextNode(w.definition));
+            dl.appendChild(dt);
+            dl.appendChild(dd);
+            w.hintCount = 0;
+            w.guessed = false;
+            w.dt = dt;
+        });
+        var ul = document.getElementById("wordbits");
+        ul.innerHTML = "";
+        var g = document.getElementById("guessarea");
+        g.innerHTML = "";
+        gamewordparts.forEach(function(p) {
+            var li = document.createElement("li");
+            var btn = document.createElement("button");
+            btn.setAttribute("data-role", "button");
+            btn.appendChild(document.createTextNode(p.part.toUpperCase()));
+            li.appendChild(btn);
+            ul.appendChild(li);
+            btn.onclick = function() {
+                if (g.childNodes.length >= 3) return;
+                if (btn.parentNode.parentNode == g) return;
+                g.appendChild(li.cloneNode(true));
+                li.className = "holding";
+            }
+        });
+    }
+
+    var failguess = function() {
+        var g = document.getElementById("guessarea"),
+            wb = document.getElementById("wordbits");
+        g.innerHTML = "";
+        var lis = wb.getElementsByTagName("li");
+        for (var i=0; i<lis.length; i++) {
+            if (lis[i].className == "holding") lis[i].className = "";
+        }
+        document.getElementById("audiobad").play();
+    }
+
+    var winguess = function() {
+        var g = document.getElementById("guessarea"),
+            allguessed = true,
+            wb = document.getElementById("wordbits");
+        g.innerHTML = "";
+        var lis = wb.getElementsByTagName("li");
+        for (var i=g.childNodes.length-1; i>=0; i--) {
+            g.childNodes[i].parentNode.removeChild(g.childNodes[i]);
+        }
+        gamewords.forEach(function(gw) {
+            if (!gw.guessed) allguessed = false;
+        });
+        if (allguessed) {
+            document.getElementById("audiosuper").play();
+            alert("You win!");
+            setTimeout(populateGame, 20);
+        } else {
+            document.getElementById("audiogood").play();
+        }
+        for (var i=0; i<lis.length; i++) {
+            if (lis[i].className == "holding") lis[i].className = "holdforever";
+        }
+    };
+
+    var beginGame = function() {
+        document.getElementById("guessbutton").onclick = function() {
+            var g = document.getElementById("guessarea");
+            if (g.childNodes.length < 3) {
+                failguess();
+                return;
+            }
+            var guess = "";
+            Array.prototype.slice.call(g.getElementsByTagName("button")).forEach(function(b) {
+                guess += b.innerHTML.toUpperCase();
+            });
+            var correct = false;
+            gamewords.forEach(function(gw) {
+                if (!gw.guessed && gw.word.toUpperCase() == guess) {
+                    gw.dt.innerHTML = gw.word;
+                    gw.dt.className = "got";
+                    gw.guessed = true
+                    correct = true;
+                    return;
+                }
+            });
+            if (!correct) {
+                failguess();
+            } else {
+                winguess();
+            }
+        };
+        document.getElementById("hintbutton").onclick = function() {
+            var hint_possible = false, hint_given = false;
+            gamewords.forEach(function(gw) {
+                if (hint_given) return;
+                if (!gw.guessed && (gw.hintcount < gw.word.length - 2)) {
+                    gw.hintcount += 1;
+                    hint_possible = true;
+                    hint_given = true;
+                    gw.dt.innerHTML = gw.word.substr(0, gw.hintcount).toUpperCase() + 
+                        Array(1 + gw.word.length - gw.hintcount).join("-") + "&nbsp;" + gw.word.length + "";
+                }
+            });
+            if (!hint_possible) {
+                document.getElementById("audiobad").play();
+            }
+        };
+        populateGame();
+    }
+
+    return {wordload: wordload}
+})();
+
+window.onload = function() { 
+    window.scrollTo(0,1);
+    FastClick.attach(document.body);
+}
+
+</script>
+<script src="words.js"></script>
+<script src="ubuntu-html5-theme/js/core.js"></script>
+<script src="ubuntu-html5-theme/js/toolbars.js"></script>
+<script src="ubuntu-html5-theme/js/pagestacks.js"></script>
+<script>
+var UI = new UbuntuUI();
+UI.init();
+UI.pagestack.push("mainpage");
+Array.prototype.slice.call(document.querySelectorAll('[data-role="tab"] > a')).forEach(function(taba) {
+    taba.addEventListener("click", function(e) {
+        if (e.target.parentNode.classList.contains("active")) return;
+        document.querySelector(taba.hash) && UI.pagestack.push(taba.hash.substr(1));
+        var act = document.querySelector("[data-role='tab'].active");
+        act.classList.remove("active");
+        act.classList.add("inactive");
+        e.target.parentNode.classList.add("active");
+        e.target.parentNode.classList.remove("inactive");
+        e.preventDefault();
+        window.scrollTo(0,1);
+    }, false);
+});
+</script>
+</body>
+</html>
