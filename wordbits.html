@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WordBits</title>
     <script type='application/javascript' src='fastclick.js'></script>
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="shortcut icon" href="icon.png">
 
 <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
 
@@ -344,6 +346,9 @@ var GLOBALS = (function() {
         }
     };
 
+    /* when we return from the main game setup function, hintclickreal hasn't been
+    defined yet. So add a shim so hintclick is a function */
+    var hintclickreal, hintclick = function() { hintclickreal(); };
     var beginGame = function() {
         document.getElementById("guessbutton").onclick = function() {
             var g = document.getElementById("guessarea");
@@ -371,7 +376,7 @@ var GLOBALS = (function() {
                 winguess();
             }
         };
-        document.getElementById("hintbutton").onclick = function() {
+        document.getElementById("hintbutton").onclick = hintclickreal = function() {
             var hint_possible = false, hint_given = false;
             gamewords.forEach(function(gw) {
                 if (hint_given) return;
@@ -390,13 +395,43 @@ var GLOBALS = (function() {
         populateGame();
     }
 
-    return {wordload: wordload}
+    return {wordload: wordload, hintclick: hintclick, startgame: populateGame}
 })();
 
 window.onload = function() { 
     window.scrollTo(0,1);
     FastClick.attach(document.body);
 }
+
+var Unity;
+function UbuntuIntegration() {
+    console.log("Ubuntu integration enabled");
+    Unity.Launcher.addAction("New game", GLOBALS.startgame);
+    Unity.Launcher.addAction("Hint", GLOBALS.hintclick);
+}
+
+/* Ubuntu integration, which apparently isn't available for a while after we load, sigh */
+var unity_check_count = 0, iv = setInterval(function() {
+    unity_check_count += 1;
+    if (window && window.external && window.external.getUnityObject) {
+        console.log("unity exists, finally");
+        clearInterval(iv);
+        Unity = window.external.getUnityObject(1.0);
+        console.log("calling init,");
+        var parts = location.href.split("/");
+        parts = parts.slice(0, parts.length-1);
+        parts.push("icon.png");
+        Unity.init({
+            name: "WordBits",
+            iconUrl: parts.join("/"),
+            onInit: UbuntuIntegration /* gnah, it has to name a global function? */
+        });
+    } else if (unity_check_count > 10) {
+        console.log("giving up waiting for Unity");
+        clearInterval(iv);
+    }
+}, 100);
+
 
 </script>
 <script src="words.js"></script>
